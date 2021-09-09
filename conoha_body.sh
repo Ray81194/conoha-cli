@@ -1,0 +1,94 @@
+#!/bin/bash
+
+conoha_list() {
+   res=$(curl -sS -X GET \
+        -H "Accept: application/json" \
+        -H "X-Auth-Token: $USER_TOKEN" \
+        https://compute.tyo1.conoha.io/v2/$TENANT_ID/servers/detail)
+
+    if [[ $res == "Authentication required" ]]; then
+        echo $res
+        exit 1
+    fi
+
+    num=$(echo $res | jq ".servers | length")
+    if [[ $num == 0 ]]; then
+        echo "no servers"
+        exit 0
+    fi
+
+    (
+    echo NO STATUS INSTANCE_NAME_TAG IP_ADDRESS CREATED
+    echo $res | jq -r ".servers | keys[] as \$k | [\$k, .[\$k].status, .[\$k].metadata.instance_name_tag, .[\$k].addresses[][1].addr, .[\$k].created] | @tsv"
+    ) | column -t
+}
+
+conoha_up()
+{
+    local tmp=$(curl -X POST \
+        -H "Accept: application/json" \
+        -H "X-Auth-Token: $USER_TOKEN" \
+        -d @$SERVER_FILE \
+        https://compute.tyo1.conoha.io/v2/$TENANT_ID/servers -w '\n%{http_code}' -s)
+
+    local res=$(echo "$tmp" | sed '$d')
+    local res_code=$(echo "$tmp" | tail -n 1)
+
+    if [[ $res_code == "202" ]]; then
+        echo up Complete
+    else
+        echo up failure
+        echo http_code: $res_code
+    fi
+}
+
+conoha_del() {
+    conoha_list
+
+    printf '\n'
+    read -p 'del No: ' del_no
+
+    if [[ -z $del_no ]]; then
+        echo read failure del No
+        exit 0
+    fi
+
+    local server_id=$(echo $res | jq -r ".servers | .[$del_no].id")
+    local tag=$(echo $res | jq -r ".servers[$del_no].metadata.instance_name_tag")
+    printf "\ndel instance_name_tag: %s\n" $tag
+
+    if [[ $server_id == 'null' ]]; then
+        echo null
+        exit 0
+    fi
+
+    res_del_http_code=$(curl -sS -w '%{http_code}\n' -X DELETE \
+        -H "Accept: application/json" \
+        -H "X-Auth-Token: $USER_TOKEN" \
+        https://compute.tyo1.conoha.io/v2/$TENANT_ID/servers/$server_id -o /dev/null)
+
+    if [[ $res_del_http_code == "204" ]]; then
+        echo del Complete
+    else
+        echo del failure
+    fi
+
+}
+
+conoha_ssh() {
+    conoha_list
+
+    printf '\n'
+    read -p 'ssh No: ' ssh_no
+
+    if [[ -z $ssh_no ]]; then
+        echo read failure del No
+        exit 0
+    fi
+
+    ip_address=$(echo $res | jq -r ".servers[$ssh_no].addresses[][1].addr")
+    echo $ip_address
+    ssh -i $SSH_PRIVATE_KEY root@$ip_address
+}
+    
+    
