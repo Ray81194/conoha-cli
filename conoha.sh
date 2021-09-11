@@ -20,14 +20,16 @@ case "$1" in
         ;;
 esac
 
-conoha_init
-
 result=0
 
 if [[ $sub_command == init ]]; then
-    echo init
+    conoha_init
     result=$?
-elif [[ $sub_command == list || $sub_command == ls ]]; then
+else
+    init
+fi
+
+if [[ $sub_command == list || $sub_command == ls ]]; then
     conoha_list
     result=$?
 
