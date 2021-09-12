@@ -25,6 +25,11 @@ conoha_list() {
 
 conoha_up()
 {
+    if [[ ! -f $SERVER_FILE ]]; then
+        echo server file not exists
+        exit 1
+    fi
+
     local tmp=$(curl -X POST \
         -H "Accept: application/json" \
         -H "X-Auth-Token: $USER_TOKEN" \
@@ -39,38 +44,39 @@ conoha_up()
     else
         echo up failure
         echo http_code: $res_code
+        echo $res
     fi
 }
 
-conoha_del() {
+conoha_rm() {
     conoha_list
 
     printf '\n'
-    read -p 'del No: ' del_no
+    read -p 'rm No: ' rm_no
 
-    if [[ -z $del_no ]]; then
-        echo read failure del No
+    if [[ -z $rm_no ]]; then
+        echo read failure rm No
         exit 0
     fi
 
-    local server_id=$(echo $res | jq -r ".servers | .[$del_no].id")
-    local tag=$(echo $res | jq -r ".servers[$del_no].metadata.instance_name_tag")
-    printf "\ndel instance_name_tag: %s\n" $tag
+    local server_id=$(echo $res | jq -r ".servers | .[$rm_no].id")
+    local tag=$(echo $res | jq -r ".servers[$rm_no].metadata.instance_name_tag")
+    printf "\nrm instance_name_tag: %s\n" $tag
 
     if [[ $server_id == 'null' ]]; then
         echo null
         exit 0
     fi
 
-    res_del_http_code=$(curl -sS -w '%{http_code}\n' -X DELETE \
+    res_rm_http_code=$(curl -sS -w '%{http_code}\n' -X DELETE \
         -H "Accept: application/json" \
         -H "X-Auth-Token: $USER_TOKEN" \
         https://compute.tyo1.conoha.io/v2/$TENANT_ID/servers/$server_id -o /dev/null)
 
-    if [[ $res_del_http_code == "204" ]]; then
-        echo del Complete
+    if [[ $res_rm_http_code == "204" ]]; then
+        echo rm Complete
     else
-        echo del failure
+        echo rm failure
     fi
 
 }
@@ -82,7 +88,7 @@ conoha_ssh() {
     read -p 'ssh No: ' ssh_no
 
     if [[ -z $ssh_no ]]; then
-        echo read failure del No
+        echo read failure ssh No
         exit 0
     fi
 

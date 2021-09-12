@@ -6,7 +6,7 @@
 sub_command=
 
 case "$1" in
-    init | list | ls | up | del | ssh)
+    init | list | ls | up | rm | ssh)
         sub_command=$1
         shift
         ;;
@@ -37,8 +37,8 @@ elif [[ $sub_command == up ]]; then
     conoha_up
     result=$?
 
-elif [[ $sub_command == del ]]; then
-    conoha_del
+elif [[ $sub_command == rm ]]; then
+    conoha_rm
     result=$?
 
 elif [[ $sub_command == ssh ]]; then
