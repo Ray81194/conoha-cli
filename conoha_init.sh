@@ -102,3 +102,27 @@ sed_edit()
 
     sed -i '' -e "$(echo s $1=.* $1=$2 g)" $INI_FILE
 }
+
+read_no()
+{
+    #echo '$1: ' $1
+    #echo '$2: ' $2
+
+    #printf '\n'
+    #local no
+    read -p "$1: " no
+
+    # 数値以外チェック
+    if [[ !($no =~ ^[0-9]+$) ]]; then
+        echo read failure $1: $no
+        exit 1
+    fi
+
+    # サーバ数以下チェック
+    if [[ -n $2 && $no -ge $2 ]]; then
+        echo plese enter $(($2 - 1)) or less
+        exit 1
+    fi
+
+    #echo $no
+}

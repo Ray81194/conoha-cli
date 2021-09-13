@@ -1,6 +1,7 @@
 #!/bin/bash
 
-conoha_list() {
+conoha_list()
+{
    res=$(curl -sS -X GET \
         -H "Accept: application/json" \
         -H "X-Auth-Token: $USER_TOKEN" \
@@ -11,8 +12,8 @@ conoha_list() {
         exit 1
     fi
 
-    num=$(echo $res | jq ".servers | length")
-    if [[ $num == 0 ]]; then
+    server_count=$(echo $res | jq ".servers | length")
+    if [[ $server_count == 0 ]]; then
         echo "no servers"
         exit 0
     fi
@@ -48,19 +49,13 @@ conoha_up()
     fi
 }
 
-conoha_rm() {
+conoha_rm()
+{
     conoha_list
+    read_no 'rm No' $server_count
 
-    printf '\n'
-    read -p 'rm No: ' rm_no
-
-    if [[ -z $rm_no ]]; then
-        echo read failure rm No
-        exit 0
-    fi
-
-    local server_id=$(echo $res | jq -r ".servers | .[$rm_no].id")
-    local tag=$(echo $res | jq -r ".servers[$rm_no].metadata.instance_name_tag")
+    local server_id=$(echo $res | jq -r ".servers | .[$no].id")
+    local tag=$(echo $res | jq -r ".servers[$no].metadata.instance_name_tag")
     printf "\nrm instance_name_tag: %s\n" $tag
 
     if [[ $server_id == 'null' ]]; then
@@ -81,18 +76,12 @@ conoha_rm() {
 
 }
 
-conoha_ssh() {
+conoha_ssh()
+{
     conoha_list
+    read_no 'ssh No' $server_count
 
-    printf '\n'
-    read -p 'ssh No: ' ssh_no
-
-    if [[ -z $ssh_no ]]; then
-        echo read failure ssh No
-        exit 0
-    fi
-
-    ip_address=$(echo $res | jq -r ".servers[$ssh_no].addresses[][1].addr")
+    ip_address=$(echo $res | jq -r ".servers[$no].addresses[][1].addr")
     echo $ip_address
     ssh -i $SSH_PRIVATE_KEY root@$ip_address
 }
