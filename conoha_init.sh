@@ -1,8 +1,8 @@
 #!/bin/bash
 
-INI_FILE=conoha.ini
+INI_FILE=~/.config/conoha/config.ini
 INI_NAME_LIST=(auth_username auth_password auth_tenant_id token_user_token token_issued_at token_expires ssh_path)
-SERVER_FILE=server.json
+SERVER_FILE=~/.config/conoha/server.json
 
 conoha_init()
 {
@@ -19,6 +19,7 @@ conoha_init()
     # ファイルがない場合作成
     if [[ ! -f $INI_FILE ]]; then
         echo make ini file
+        mkdir -p ${INI_FILE%/*}
         touch $INI_FILE
         echo -e "auth_username=\nauth_password=\nauth_tenant_id=\ntoken_user_token=\ntoken_issued_at=\ntoken_expires=\nssh_path=" > $INI_FILE
     fi
@@ -97,19 +98,11 @@ load_ini()
 
 sed_edit()
 {
-    #echo '$1: ' $1
-    #echo '$2: ' $2
-
     sed -i '' -e "$(echo s $1=.* $1=$2 g)" $INI_FILE
 }
 
 read_no()
 {
-    #echo '$1: ' $1
-    #echo '$2: ' $2
-
-    #printf '\n'
-    #local no
     read -p "$1: " no
 
     # 数値以外チェック
@@ -123,6 +116,4 @@ read_no()
         echo plese enter $(($2 - 1)) or less
         exit 1
     fi
-
-    #echo $no
 }
