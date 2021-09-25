@@ -19,9 +19,9 @@ conoha_list()
     fi
 
     (
-    echo NO STATUS INSTANCE_NAME_TAG IP_ADDRESS CREATED
-    echo $res | jq -r ".servers | keys[] as \$k | [\$k, .[\$k].status, .[\$k].metadata.instance_name_tag, .[\$k].addresses[][1].addr, .[\$k].created] | @tsv"
-    ) | column -t
+    echo -e "NO\tSTATUS\tINSTANCE_NAME_TAG\tIP_ADDRESS\tCREATED"
+    echo $res | jq -r ".servers | keys[] as \$k | [\$k, .[\$k].status, .[\$k].metadata.instance_name_tag, if .[\$k].addresses=={} then \" \" elif .[\$k].addresses[][0].version==4 then .[\$k].addresses[][0].addr else .[\$k].addresses[][1].addr end, .[\$k].created] | @tsv"
+    ) | column -t -s "$(printf '\t')"
 }
 
 conoha_up()
@@ -81,7 +81,7 @@ conoha_ssh()
     conoha_list
     read_no 'ssh No' $server_count
 
-    ip_address=$(echo $res | jq -r ".servers[$no].addresses[][1].addr")
+    ip_address=$(echo $res | jq -r "if .servers[$no].addresses[][0].version==4 then .servers[$no].addresses[][0].addr else .servers[$no].addresses[][1].addr")
     echo $ip_address
     ssh -i $SSH_PRIVATE_KEY root@$ip_address
 }
