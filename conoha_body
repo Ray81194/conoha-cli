@@ -81,7 +81,7 @@ conoha_ssh()
     conoha_list
     read_no 'ssh No' $server_count
 
-    ip_address=$(echo $res | jq -r "if .servers[$no].addresses[][0].version==4 then .servers[$no].addresses[][0].addr else .servers[$no].addresses[][1].addr")
+    ip_address=$(echo $res | jq -r "if .servers[$no].addresses[][0].version==4 then .servers[$no].addresses[][0].addr else .servers[$no].addresses[][1].addr end")
     echo $ip_address
     ssh -i $SSH_PRIVATE_KEY root@$ip_address
 }
